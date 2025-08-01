@@ -1,13 +1,10 @@
-import { PaymentDTO } from "../../../shared-lib/interfaces/PaymentDTO";
-import { IMessageQueue } from "../interfaces/IMessageQueue";
+import { IMessageQueue } from "@shared/internal/interfaces/queue/IMessageQueue";
+import { PaymentDTO } from "../../../shared-lib/external/dtos";
 
 export class EnqueuePaymentUseCase {
-  constructor(
-    private readonly messageQueue: IMessageQueue<PaymentDTO>,
-    private readonly jobName: string
-  ) {}
+  constructor(private readonly messageQueue: IMessageQueue<PaymentDTO>) {}
 
   async execute(paymentDto: PaymentDTO) {
-    await this.messageQueue.enqueue(this.jobName, paymentDto);
+    await this.messageQueue.enqueue(paymentDto);
   }
 }

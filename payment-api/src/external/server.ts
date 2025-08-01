@@ -1,24 +1,19 @@
+import { BullMQMessageQueue } from "@shared/external/queue/BullMQMessageQueue";
 import Fastify from "fastify";
 import { hostname } from "node:os";
 import { EnqueuePaymentUseCase } from "../internal/use-cases/EnqueuePayment";
 import { fastifyControllerAdapter } from "./adapters/fastifyControllerAdapter";
 import { PaymentsController } from "./controllers/PaymentController";
-import { BullMQMessageQueue } from "./queue/BullMQMessageQueue";
 
 const port = 3000;
 const redisUrl = process.env.REDIS_URL!;
-const paymentsQueue = process.env.PAYMENTS_QUEUE!;
-const processPaymentJobName = process.env.PROCESS_PAYMENT_JOB_NAME!;
 const ff = Fastify();
 
 // Payments queue setup
-const bullMQQueue = new BullMQMessageQueue(paymentsQueue, redisUrl);
+const bullMQQueue = new BullMQMessageQueue(redisUrl);
 
 // Link use cases to controllers
-const enqueuePaymentUseCase = new EnqueuePaymentUseCase(
-  bullMQQueue,
-  processPaymentJobName
-);
+const enqueuePaymentUseCase = new EnqueuePaymentUseCase(bullMQQueue);
 const paymentsController = new PaymentsController(enqueuePaymentUseCase);
 const fastifyPaymentsController = fastifyControllerAdapter(paymentsController);
 

@@ -1,2 +1,4 @@
 .vscode/*
 */shared-lib
+*/node_modules
+*/dist

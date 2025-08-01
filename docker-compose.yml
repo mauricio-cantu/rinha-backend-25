@@ -5,33 +5,29 @@ x-api: &payment-api-template
   depends_on:
     redis:
       condition: service_healthy
-  deploy:
-    resources:
-      limits:
-        cpus: "0.2"
-        memory: "40MB"
   environment:
-    - PAYMENTS_QUEUE=payments
-    - REDIS_URL=redis://redis:6379
-    - PROCESS_PAYMENT_JOB_NAME=process-payment
+    - PAYMENTS_QUEUE=${PAYMENTS_QUEUE}
+    - REDIS_URL=${REDIS_URL}
+    - PROCESS_PAYMENT_JOB_NAME=${PROCESS_PAYMENT_JOB_NAME}
   networks:
     - rinha-backend
-    # TODO: uncomment payment-processor
-    # - payment-processor
+    - payment-processor
 
 x-worker: &payment-worker-template
   build: ./payment-worker
-  deploy:
-    resources:
-      limits:
-        cpus: "0.25"
-        memory: "70MB"
   depends_on:
     redis:
       condition: service_healthy
+  environment:
+    - WORKER_CONCURRENCY=${WORKER_CONCURRENCY}
+    - PAYMENTS_QUEUE=${PAYMENTS_QUEUE}
+    - REDIS_URL=${REDIS_URL}
+    - PROCESS_PAYMENT_JOB_NAME=${PROCESS_PAYMENT_JOB_NAME}
+    - PAYMENT_PROCESSOR_URL_DEFAULT=${PAYMENT_PROCESSOR_URL_DEFAULT}
+    - PAYMENT_PROCESSOR_URL_FALLBACK=${PAYMENT_PROCESSOR_URL_FALLBACK}
   networks:
     - rinha-backend
-    # - payment-processor
+    - payment-processor
 
 services:
   nginx:
@@ -46,7 +42,7 @@ services:
       - "9999:9999"
     networks:
       - rinha-backend
-      # - payment-processor
+      - payment-processor
     deploy:
       resources:
         limits:
@@ -57,47 +53,61 @@ services:
     <<: *payment-api-template
     hostname: payment-api-01
     container_name: payment-api-01
+    deploy:
+      resources:
+        limits:
+          cpus: "0.2"
+          memory: "50MB"
 
   payment-api-02:
     <<: *payment-api-template
     hostname: payment-api-02
     container_name: payment-api-02
+    deploy:
+      resources:
+        limits:
+          cpus: "0.2"
+          memory: "50MB"
 
   payment-worker-01:
     <<: *payment-worker-template
     hostname: payment-worker-01
     container_name: payment-worker-01
+    deploy:
+      resources:
+        limits:
+          cpus: "0.3"
+          memory: "80MB"
 
   payment-worker-02:
     <<: *payment-worker-template
     hostname: payment-worker-02
     container_name: payment-worker-02
+    deploy:
+      resources:
+        limits:
+          cpus: "0.3"
+          memory: "80MB"
 
   healthcheck-worker:
     build: ./healthcheck-worker
     hostname: healthcheck-worker
     container_name: healthcheck-worker
+    depends_on:
+      redis:
+        condition: service_healthy
     deploy:
       resources:
         limits:
           cpus: "0.1"
           memory: "30MB"
+    environment:
+      - PAYMENT_PROCESSOR_URL_DEFAULT=${PAYMENT_PROCESSOR_URL_DEFAULT}
+      - PAYMENT_PROCESSOR_URL_FALLBACK=${PAYMENT_PROCESSOR_URL_FALLBACK}
+      - REDIS_URL=${REDIS_URL}
     networks:
       - rinha-backend
-      # - payment-processor
-
-  dlq-worker:
-    build: ./dlq-worker
-    hostname: dlq-worker
-    container_name: dlq-worker
-    deploy:
-      resources:
-        limits:
-          cpus: "0.15"
-          memory: "40MB"
-    networks:
-      - rinha-backend
-      # - payment-processor
+      - payment-processor
 
   redis:
     image: redis:7.2-alpine
@@ -113,7 +123,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.15"
+          cpus: "0.2"
           memory: "40MB"
     networks:
       - rinha-backend
@@ -121,5 +131,5 @@ services:
 networks:
   rinha-backend:
     driver: bridge
-  # payment-processor:
-  #   external: true
+  payment-processor:
+    external: true

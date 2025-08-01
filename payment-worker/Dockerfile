@@ -11,6 +11,8 @@ RUN npm run build
 # step 2 - js only source code
 FROM node:22-alpine3.22 AS runtime
 
+ENV NODE_ENV=production
+
 WORKDIR /app
 
 COPY --from=builder /app/package*.json ./
