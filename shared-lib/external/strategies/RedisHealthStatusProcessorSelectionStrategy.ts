@@ -6,6 +6,7 @@ export class RedisHealthStatusProcessorSelectionStrategy
   implements IProcessorSelectionStrategy
 {
   private readonly FALLBACK_ACCEPTABLE_LATENCY_MS = 100;
+  private readonly FALLBACK_LATENCY_PENALTY_MS = 100;
 
   constructor(
     private readonly processorHealthRepository: IProcessorHealthRepository
@@ -17,16 +18,28 @@ export class RedisHealthStatusProcessorSelectionStrategy
       this.processorHealthRepository.getFallbackStatus(),
     ]);
 
-    // priorize sempre o default pela taxa menor
-    if (defaultStatus && !defaultStatus.failing) return "default";
+    const defaultAvailable = defaultStatus && !defaultStatus.failing;
+    const fallbackAvailable = fallbackStatus && !fallbackStatus.failing;
 
-    // usa o fallback só se estiver com uma tempo mínimo baixo de resposta
+    if (defaultAvailable && fallbackAvailable) {
+      const adjustedFallbackTime =
+        fallbackStatus.minResponseTime + this.FALLBACK_LATENCY_PENALTY_MS;
+
+      const preferFallback =
+        defaultStatus.minResponseTime > adjustedFallbackTime;
+      return preferFallback ? "fallback" : "default";
+    }
+
+    if (defaultAvailable) {
+      return "default";
+    }
+
     if (
-      fallbackStatus &&
-      !fallbackStatus.failing &&
+      fallbackAvailable &&
       fallbackStatus.minResponseTime <= this.FALLBACK_ACCEPTABLE_LATENCY_MS
-    )
+    ) {
       return "fallback";
+    }
 
     return null;
   }

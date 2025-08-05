@@ -3,7 +3,7 @@ import { ProcessPaymentUseCase } from "./use-cases/ProcessPaymentUseCase";
 import { Worker } from "bullmq";
 import { ProcessorHealthRedisRepository } from "@shared/external/repository/ProcessorHealthRedisRepository";
 import { createClient, RedisClientType } from "redis";
-import { FetchProcessorClientFactory } from "@shared/external/factories/FetchProcessorClientFactory";
+import { UndiciProcessorClientFactory } from "@shared/external/factories/UndiciProcessorClientFactory";
 import { PaymentRedisRepository } from "@shared/external/repository/PaymentRedisRepository";
 import { PaymentDTO } from "@shared/external/dtos";
 
@@ -22,7 +22,7 @@ redis.connect().then(() => {
   );
   const processorSelectionStrategy =
     new RedisHealthStatusProcessorSelectionStrategy(processorHealthRepository);
-  const processorClientFactory = new FetchProcessorClientFactory();
+  const processorClientFactory = new UndiciProcessorClientFactory();
   const paymentRepository = new PaymentRedisRepository(
     // @ts-expect-error
     redis as RedisClientType
