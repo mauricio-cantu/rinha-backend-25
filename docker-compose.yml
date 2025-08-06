@@ -25,6 +25,7 @@ x-worker: &payment-worker-template
     - PROCESS_PAYMENT_JOB_NAME=${PROCESS_PAYMENT_JOB_NAME}
     - PAYMENT_PROCESSOR_URL_DEFAULT=${PAYMENT_PROCESSOR_URL_DEFAULT}
     - PAYMENT_PROCESSOR_URL_FALLBACK=${PAYMENT_PROCESSOR_URL_FALLBACK}
+    - HTTP_CONNECTIONS_NUMBER=${HTTP_CONNECTIONS_NUMBER}
   networks:
     - rinha-backend
     - payment-processor
@@ -100,11 +101,12 @@ services:
       resources:
         limits:
           cpus: "0.1"
-          memory: "50MB"
+          memory: "40MB"
     environment:
       - PAYMENT_PROCESSOR_URL_DEFAULT=${PAYMENT_PROCESSOR_URL_DEFAULT}
       - PAYMENT_PROCESSOR_URL_FALLBACK=${PAYMENT_PROCESSOR_URL_FALLBACK}
       - REDIS_URL=${REDIS_URL}
+      - HTTP_CONNECTIONS_NUMBER=1
     networks:
       - rinha-backend
       - payment-processor
@@ -124,7 +126,7 @@ services:
       resources:
         limits:
           cpus: "0.2"
-          memory: "40MB"
+          memory: "30MB"
     networks:
       - rinha-backend
 
