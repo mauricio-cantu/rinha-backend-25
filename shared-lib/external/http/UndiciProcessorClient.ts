@@ -21,13 +21,10 @@ export class UndiciProcessorClient implements IProcessorClient {
 
   // singleton por tipo de processor (default/fallback)
   static getInstance(alias: ProcessorAlias) {
-    if (!UndiciProcessorClient.instances.has(alias)) {
-      UndiciProcessorClient.instances.set(
-        alias,
-        new UndiciProcessorClient(alias)
-      );
+    if (!this.instances.has(alias)) {
+      this.instances.set(alias, new UndiciProcessorClient(alias));
     }
-    return UndiciProcessorClient.instances.get(alias)!;
+    return this.instances.get(alias)!;
   }
 
   private resolveBaseUrl(alias: ProcessorAlias): string {

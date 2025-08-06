@@ -100,7 +100,7 @@ services:
       resources:
         limits:
           cpus: "0.1"
-          memory: "30MB"
+          memory: "50MB"
     environment:
       - PAYMENT_PROCESSOR_URL_DEFAULT=${PAYMENT_PROCESSOR_URL_DEFAULT}
       - PAYMENT_PROCESSOR_URL_FALLBACK=${PAYMENT_PROCESSOR_URL_FALLBACK}

@@ -15,4 +15,19 @@ export interface ProcessorHealthResponse {
   minResponseTime: number;
 }
 
+export interface DateRange {
+  from: string;
+  to: string;
+}
+
+export interface SummaryItem {
+  totalRequests: number;
+  totalAmount: number;
+}
+
+export interface GetPaymentsSummaryResponse {
+  default: SummaryItem;
+  fallback: SummaryItem;
+}
+
 export type ProcessorAlias = "default" | "fallback";

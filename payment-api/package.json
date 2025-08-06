@@ -14,7 +14,8 @@
   "description": "",
   "dependencies": {
     "bullmq": "^5.56.5",
-    "fastify": "^5.4.0"
+    "fastify": "^5.4.0",
+    "redis": "^5.8.0"
   },
   "devDependencies": {
     "@types/node": "^24.0.15",
