@@ -1,11 +1,11 @@
-import { RedisHealthStatusProcessorSelectionStrategy } from "@shared/external/strategies/RedisHealthStatusProcessorSelectionStrategy";
-import { ProcessPaymentUseCase } from "./use-cases/ProcessPaymentUseCase";
-import { Worker } from "bullmq";
-import { ProcessorHealthRedisRepository } from "@shared/external/repository/ProcessorHealthRedisRepository";
-import { createClient, RedisClientType } from "redis";
+import { PaymentDTO } from "@shared/external/dtos";
 import { UndiciProcessorClientFactory } from "@shared/external/factories/UndiciProcessorClientFactory";
 import { PaymentRedisRepository } from "@shared/external/repository/PaymentRedisRepository";
-import { PaymentDTO } from "@shared/external/dtos";
+import { ProcessorHealthRedisRepository } from "@shared/external/repository/ProcessorHealthRedisRepository";
+import { RedisHealthStatusProcessorSelectionStrategy } from "@shared/external/strategies/RedisHealthStatusProcessorSelectionStrategy";
+import { Worker } from "bullmq";
+import { createClient, RedisClientType } from "redis";
+import { ProcessPaymentUseCase } from "./use-cases/ProcessPaymentUseCase";
 
 const DEFAULT_WORKER_CONCURRENCY = 50;
 
@@ -13,6 +13,9 @@ const queueName = process.env.PAYMENTS_QUEUE!;
 
 const redis = createClient({
   url: process.env.REDIS_URL,
+  socket: {
+    keepAlive: true,
+  },
 });
 
 redis.connect().then(() => {
@@ -33,6 +36,12 @@ redis.connect().then(() => {
     paymentRepository
   );
 
+  const concurrency = Number(
+    process.env.WORKER_CONCURRENCY || DEFAULT_WORKER_CONCURRENCY
+  );
+
+  console.log({ concurrency });
+
   const worker = new Worker(
     queueName,
     async (job) => {
@@ -42,15 +51,12 @@ redis.connect().then(() => {
       connection: {
         url: process.env.REDIS_URL,
       },
-      concurrency: Number(
-        process.env.WORKER_CONCURRENCY || DEFAULT_WORKER_CONCURRENCY
-      ),
+      concurrency,
     }
   );
 
   worker.on("completed", async (job) => {
     console.log(`[Payment worker] Job ${job.id} completed`);
-    await job.remove();
   });
 
   worker.on("failed", (job, err) => {

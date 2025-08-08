@@ -1,5 +1,5 @@
 # step 1 - build
-FROM node:22-alpine3.22 AS builder
+FROM node:current-alpine AS builder
 
 WORKDIR /app
 
@@ -9,7 +9,7 @@ COPY . .
 RUN npm run build
 
 # step 2 - js only source code
-FROM node:22-alpine3.22 AS runtime
+FROM node:current-alpine AS runtime
 
 ENV NODE_ENV=production
 

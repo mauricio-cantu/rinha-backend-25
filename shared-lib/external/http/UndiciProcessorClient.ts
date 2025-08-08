@@ -40,12 +40,19 @@ export class UndiciProcessorClient implements IProcessorClient {
   }
 
   async sendPayment(payment: Payment): Promise<Response> {
-    const body = JSON.stringify(payment);
-
+    const TIMEOUT_IN_MS = 500;
     const { statusCode, body: responseBody } = await this.pool.request({
       path: `${this.baseUrl}/payments`,
+      // bodyTimeout: TIMEOUT_IN_MS,
+      headers: {
+        "Content-Type": "application/json",
+      },
       method: "POST",
-      body,
+      body: JSON.stringify({
+        correlationId: payment.getCorrelationId(),
+        amount: payment.getAmount(),
+        requestedAt: payment.getRequestedAt(),
+      }),
     });
 
     const ok = statusCode === 200;
@@ -67,6 +74,9 @@ export class UndiciProcessorClient implements IProcessorClient {
     const { statusCode, body: responseBody } = await this.pool.request({
       path: `${this.baseUrl}/payments/service-health`,
       method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
 
     const ok = statusCode === 200;
@@ -84,5 +94,7 @@ export class UndiciProcessorClient implements IProcessorClient {
     };
   }
 
-  async purgePayments(): Promise<void> {}
+  async purgePayments(): Promise<void> {
+    throw new Error("To be implemented");
+  }
 }

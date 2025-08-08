@@ -1,7 +1,7 @@
+import { FetchProcessorClientFactory } from "@shared/external/factories/FetchProcessorClientFactory";
+import { ProcessorHealthRedisRepository } from "@shared/external/repository/ProcessorHealthRedisRepository";
 import { createClient, RedisClientType } from "redis";
 import { UpdateProcessorHealthUseCase } from "./use-cases/UpdateProcessorHealthUseCase";
-import { UndiciProcessorClientFactory } from "@shared/external/factories/UndiciProcessorClientFactory";
-import { ProcessorHealthRedisRepository } from "@shared/external/repository/ProcessorHealthRedisRepository";
 
 const redis = createClient({
   url: process.env.REDIS_URL,
@@ -17,7 +17,7 @@ redis
 async function startHealthCheckLoop() {
   const WORKER_INTERVAL_IN_MS = 5000;
 
-  const processorClientFactory = new UndiciProcessorClientFactory();
+  const processorClientFactory = new FetchProcessorClientFactory();
   const processorHealthRepository = new ProcessorHealthRedisRepository(
     redis as RedisClientType
   );

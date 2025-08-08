@@ -5,8 +5,8 @@ import { ProcessorAlias } from "../dtos";
 export class RedisHealthStatusProcessorSelectionStrategy
   implements IProcessorSelectionStrategy
 {
-  private readonly FALLBACK_ACCEPTABLE_LATENCY_MS = 100;
-  private readonly FALLBACK_LATENCY_PENALTY_MS = 100;
+  private readonly FALLBACK_ACCEPTABLE_LATENCY_MS = 200;
+  private readonly FALLBACK_LATENCY_PENALTY_MS = 1000;
 
   constructor(
     private readonly processorHealthRepository: IProcessorHealthRepository
@@ -41,6 +41,6 @@ export class RedisHealthStatusProcessorSelectionStrategy
       return "fallback";
     }
 
-    return null;
+    return "default";
   }
 }

@@ -9,10 +9,10 @@ export class BullMQMessageQueue<T> implements IMessageQueue<T> {
     this.queue = new Queue(process.env.PAYMENTS_QUEUE!, {
       connection: { url: redisUrl },
       defaultJobOptions: {
-        attempts: 5,
+        attempts: 10,
         backoff: {
-          type: "exponential",
-          delay: 2000,
+          type: "fixed",
+          delay: 1000,
         },
         removeOnComplete: true,
         removeOnFail: true,

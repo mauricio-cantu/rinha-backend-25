@@ -1,5 +1,3 @@
-version: "3.8"
-
 x-api: &payment-api-template
   build: ./payment-api # TODO: change build files to published images on docker hub
   depends_on:
@@ -48,7 +46,7 @@ services:
       resources:
         limits:
           cpus: "0.2"
-          memory: "20MB"
+          memory: "10MB"
 
   payment-api-01:
     <<: *payment-api-template
@@ -78,7 +76,7 @@ services:
       resources:
         limits:
           cpus: "0.3"
-          memory: "80MB"
+          memory: "65MB"
 
   payment-worker-02:
     <<: *payment-worker-template
@@ -88,7 +86,7 @@ services:
       resources:
         limits:
           cpus: "0.3"
-          memory: "80MB"
+          memory: "65MB"
 
   healthcheck-worker:
     build: ./healthcheck-worker
@@ -126,7 +124,7 @@ services:
       resources:
         limits:
           cpus: "0.2"
-          memory: "30MB"
+          memory: "70MB"
     networks:
       - rinha-backend
 

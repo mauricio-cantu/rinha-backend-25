@@ -16,7 +16,7 @@ export class GetSummaryController implements IController {
         endDate: to,
       });
       return {
-        statusCode: 201,
+        statusCode: 200,
         body: response,
       };
     } catch (err: any) {

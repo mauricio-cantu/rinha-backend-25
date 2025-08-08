@@ -3,6 +3,7 @@ import { PaymentDTO } from "@shared/external/dtos";
 export class Payment {
   private readonly correlationId: string;
   private readonly amount: number;
+  private readonly requestedAt: string;
 
   constructor(correlationId: string, amount: number) {
     if (!correlationId) {
@@ -16,6 +17,7 @@ export class Payment {
 
     this.correlationId = correlationId;
     this.amount = amount;
+    this.requestedAt = new Date().toISOString();
   }
 
   getCorrelationId() {
@@ -24,6 +26,10 @@ export class Payment {
 
   getAmount(): number {
     return this.amount;
+  }
+
+  getRequestedAt(): string {
+    return this.requestedAt;
   }
 
   static fromDto(paymentDto: PaymentDTO): Payment {

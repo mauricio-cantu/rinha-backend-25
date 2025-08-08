@@ -16,23 +16,27 @@ export class ProcessPaymentUseCase {
 
     const processor = await this.processorSelectionStrategy.run();
     if (!processor) {
-      console.log("[ProcessPaymentUseCase] No processor available");
-      // deixa o gerenciador de fila tratar/processar novamente
+      // requeue
       throw new Error("No processor available");
     }
     const processorClient = this.processorClientFactory.create(processor);
     const payment = Payment.fromDto(paymentData);
-    await processorClient.sendPayment(payment);
-    const processedPayment: ProcessedPayment = {
-      amount: payment.getAmount(),
-      correlationId: payment.getCorrelationId(),
-      requestedAt: new Date().toISOString(),
-      processor,
-    };
-    await this.paymentRepository.save(processedPayment);
-    console.log(
-      "[ProcessPaymentUseCase] Finished processing payment",
-      processedPayment
-    );
+    const sendPaymentResponse = await processorClient.sendPayment(payment);
+    if (sendPaymentResponse.success) {
+      const processedPayment: ProcessedPayment = {
+        amount: payment.getAmount(),
+        correlationId: payment.getCorrelationId(),
+        requestedAt: payment.getRequestedAt(),
+        processor,
+      };
+      await this.paymentRepository.save(processedPayment);
+      console.log(
+        "[ProcessPaymentUseCase] Finished processing payment",
+        processedPayment
+      );
+    } else {
+      // requeue
+      throw new Error(`Failed sending payment to ${processor} processor.`);
+    }
   }
 }
