@@ -1,10 +1,13 @@
+import { UndiciProcessorClientFactory } from "@shared/external/factories/UndiciProcessorClientFactory";
 import { BullMQMessageQueue } from "@shared/external/queue/BullMQMessageQueue";
 import { PaymentRedisRepository } from "@shared/external/repository/PaymentRedisRepository";
+import { ProcessorHealthRedisRepository } from "@shared/external/repository/ProcessorHealthRedisRepository";
 import http from "node:http";
 import { hostname } from "node:os";
 import { parse } from "node:url";
 import { createClient } from "redis";
 import { GetPaymentsSummaryUseCase } from "src/internal/use-cases/GetPaymentsSummaryUseCase";
+import { UpdateProcessorHealthUseCase } from "src/internal/use-cases/UpdateProcessorHealthUseCase";
 import { EnqueuePaymentUseCase } from "../internal/use-cases/EnqueuePayment";
 import { GetSummaryController } from "./controllers/GetSummaryController";
 import { PaymentsController } from "./controllers/PaymentController";
@@ -40,22 +43,15 @@ export const startServer = async () => {
     const server = http.createServer(async (req, res) => {
       const { method, url } = req;
       const parsedUrl = parse(url || "", true);
-
-      if (method === "GET" && parsedUrl.pathname === "/ping") {
-        res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ message: `pong from ${hostname()}` }));
-        return;
-      }
-
       if (method === "POST" && parsedUrl.pathname === "/payments") {
         let body = "";
         req.on("data", (chunk) => (body += chunk));
         req.on("end", async () => {
           try {
             const data = JSON.parse(body);
-            const result = await paymentsController.handle({ body: data });
+            paymentsController.handle({ body: data });
             res.writeHead(200, { "Content-Type": "application/json" });
-            res.end(JSON.stringify(result));
+            res.end("ok");
           } catch (error) {
             res.writeHead(500, { "Content-Type": "application/json" });
             res.end(JSON.stringify({ error: "Internal Server Error" }));
@@ -86,6 +82,33 @@ export const startServer = async () => {
     server.listen(port, "0.0.0.0", () => {
       console.log(`Server ${hostname()} running on port ${port}`);
     });
+
+    const shouldRunHealthCheck = !!process.env.RUN_HEALTHCHECK;
+    if (shouldRunHealthCheck) {
+      // setup do healthcheck
+      const WORKER_INTERVAL_IN_MS = 5000;
+      const processorClientFactory = new UndiciProcessorClientFactory();
+      const processorHealthRepository = new ProcessorHealthRedisRepository(
+        // @ts-expect-error
+        redis
+      );
+      const healthCheckUseCase = new UpdateProcessorHealthUseCase(
+        processorClientFactory,
+        processorHealthRepository
+      );
+      (async () => {
+        while (true) {
+          try {
+            await healthCheckUseCase.execute();
+          } catch (err) {
+            console.error("Error executing health check:", err);
+          }
+          await new Promise((resolve) =>
+            setTimeout(resolve, WORKER_INTERVAL_IN_MS)
+          );
+        }
+      })();
+    }
   } catch (err) {
     console.error("fatal error on server", err);
     process.exit(1);

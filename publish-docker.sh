@@ -24,10 +24,4 @@ docker tag $DOCKER_USER/payment-worker:$VERSION $DOCKER_USER/payment-worker:late
 docker push $DOCKER_USER/payment-worker:$VERSION
 docker push $DOCKER_USER/payment-worker:latest
 
-echo "Buildando healthcheck-worker..."
-docker build -t $DOCKER_USER/healthcheck-worker:$VERSION ./healthcheck-worker
-docker tag $DOCKER_USER/healthcheck-worker:$VERSION $DOCKER_USER/healthcheck-worker:latest
-docker push $DOCKER_USER/healthcheck-worker:$VERSION
-docker push $DOCKER_USER/healthcheck-worker:latest
-
 echo "Imagens publicadas"

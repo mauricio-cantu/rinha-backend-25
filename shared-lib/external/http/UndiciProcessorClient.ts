@@ -16,6 +16,7 @@ export class UndiciProcessorClient implements IProcessorClient {
     this.baseUrl = this.resolveBaseUrl(this.alias);
     this.pool = new Pool(this.baseUrl, {
       connections: Number(process.env.HTTP_CONNECTIONS_NUMBER || 10),
+      pipelining: 0,
     });
   }
 
