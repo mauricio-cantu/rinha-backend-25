@@ -1,5 +1,5 @@
 x-api: &payment-api-template
-  build: ./payment-api # TODO: change build files to published images on docker hub
+  image: mauriciocantu/payment-api:latest
   depends_on:
     redis:
       condition: service_healthy
@@ -12,7 +12,7 @@ x-api: &payment-api-template
     - payment-processor
 
 x-worker: &payment-worker-template
-  build: ./payment-worker
+  image: mauriciocantu/payment-worker:latest
   depends_on:
     redis:
       condition: service_healthy
@@ -89,7 +89,7 @@ services:
           memory: "65MB"
 
   healthcheck-worker:
-    build: ./healthcheck-worker
+    image: mauriciocantu/healthcheck-worker:latest
     hostname: healthcheck-worker
     container_name: healthcheck-worker
     depends_on:

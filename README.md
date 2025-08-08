@@ -2,7 +2,7 @@
 
 ## Design
 
-O projeto foi estruturado pensando em boas práticas de software aplicando conceitos de Clean Arch, SOLID e alguns Design Patterns, pensando principalmente em criar um código legível, "plugável", desacoplado das tecnologias, com injeção de dependências e abstrações.
+O projeto foi estruturado pensando em boas práticas de software aplicando conceitos de Clean Arch, SOLID e alguns Design Patterns, pensando principalmente em criar um código legível, "plugável", desacoplado das tecnologias, com injeção de dependências e abstrações. Não era requisito da rinha, mas quis fazer dessa forma para praticar alguns conceitos e também facilitar a troca de implementações entre as submissões a rinha.
 
 ## Arquitetura e Performance
 
