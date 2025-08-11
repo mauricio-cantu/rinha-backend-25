@@ -5,8 +5,7 @@ import { ProcessorAlias } from "../dtos";
 export class RedisHealthStatusProcessorSelectionStrategy
   implements IProcessorSelectionStrategy
 {
-  private readonly FALLBACK_ACCEPTABLE_LATENCY_MS = 200;
-  private readonly FALLBACK_LATENCY_PENALTY_MS = 1000;
+  private readonly FALLBACK_LATENCY_PENALTY_PERCENTAGE = 0.5;
 
   constructor(
     private readonly processorHealthRepository: IProcessorHealthRepository
@@ -21,24 +20,23 @@ export class RedisHealthStatusProcessorSelectionStrategy
     const defaultAvailable = defaultStatus && !defaultStatus.failing;
     const fallbackAvailable = fallbackStatus && !fallbackStatus.failing;
 
+    if (defaultAvailable && !fallbackAvailable) return "default";
+
+    if (
+      fallbackAvailable &&
+      !defaultAvailable &&
+      fallbackStatus.minResponseTime < 500
+    )
+      return "fallback";
+
     if (defaultAvailable && fallbackAvailable) {
       const adjustedFallbackTime =
-        fallbackStatus.minResponseTime + this.FALLBACK_LATENCY_PENALTY_MS;
+        fallbackStatus.minResponseTime *
+        (1 + this.FALLBACK_LATENCY_PENALTY_PERCENTAGE);
 
       const preferFallback =
         defaultStatus.minResponseTime > adjustedFallbackTime;
       return preferFallback ? "fallback" : "default";
-    }
-
-    if (defaultAvailable) {
-      return "default";
-    }
-
-    if (
-      fallbackAvailable &&
-      fallbackStatus.minResponseTime <= this.FALLBACK_ACCEPTABLE_LATENCY_MS
-    ) {
-      return "fallback";
     }
 
     return "default";

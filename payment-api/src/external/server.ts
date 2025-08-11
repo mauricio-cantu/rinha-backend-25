@@ -16,9 +16,6 @@ const redisUrl = process.env.REDIS_URL!;
 
 const redis = createClient({
   url: process.env.REDIS_URL,
-  socket: {
-    keepAlive: true,
-  },
 });
 
 export const startServer = async () => {
@@ -49,7 +46,7 @@ export const startServer = async () => {
         req.on("end", async () => {
           try {
             const data = JSON.parse(body);
-            paymentsController.handle({ body: data });
+            await paymentsController.handle({ body: data });
             res.writeHead(200, { "Content-Type": "application/json" });
             res.end("ok");
           } catch (error) {
