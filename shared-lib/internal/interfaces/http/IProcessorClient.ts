@@ -1,5 +1,4 @@
-import { ProcessorHealthResponse } from "@shared/external/dtos";
-import { Payment } from "@shared/internal/domain/Payment";
+import { PaymentDTO, ProcessorHealthResponse } from "@shared/external/dtos";
 
 export type Response<T = any> =
   | {
@@ -12,7 +11,7 @@ export type Response<T = any> =
     };
 
 export interface IProcessorClient {
-  sendPayment(payment: Payment): Promise<Response>;
+  sendPayment(payment: PaymentDTO): Promise<Response>;
   checkHealth(): Promise<Response<ProcessorHealthResponse>>;
   purgePayments(): Promise<void>;
 }

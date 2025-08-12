@@ -4,18 +4,17 @@
   "main": "index.js",
   "scripts": {
     "update-shared-lib": "rm -rf ./shared-lib && cp -r ../shared-lib ./shared-lib",
-    "dev": "ts-node src/index.ts",
+    "dev": "ts-node src/external/server.ts",
     "build": "tsc && tsc-alias",
-    "start": "node dist/src/index.js"
+    "start": "node dist/src/external/server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "bullmq": "^5.56.5",
-    "fastify": "^5.4.0",
-    "redis": "^5.8.0",
+    "bullmq": "^5.56.10",
+    "ioredis": "^5.7.0",
     "undici": "^7.13.0"
   },
   "devDependencies": {

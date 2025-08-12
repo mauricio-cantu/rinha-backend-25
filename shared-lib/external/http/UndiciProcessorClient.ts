@@ -1,10 +1,9 @@
-import { Payment } from "@shared/internal/domain/Payment";
 import {
   IProcessorClient,
   Response,
 } from "@shared/internal/interfaces/http/IProcessorClient";
-import { ProcessorAlias, ProcessorHealthResponse } from "../dtos";
 import { Dispatcher, Pool } from "undici";
+import { PaymentDTO, ProcessorAlias, ProcessorHealthResponse } from "../dtos";
 
 export class UndiciProcessorClient implements IProcessorClient {
   private readonly baseUrl: string;
@@ -39,20 +38,16 @@ export class UndiciProcessorClient implements IProcessorClient {
     return url;
   }
 
-  async sendPayment(payment: Payment): Promise<Response> {
-    const TIMEOUT_IN_MS = 500;
+  async sendPayment(payment: PaymentDTO): Promise<Response> {
+    const TIMEOUT_IN_MS = 5000;
     const { statusCode, body: responseBody } = await this.pool.request({
       path: `${this.baseUrl}/payments`,
-      // bodyTimeout: TIMEOUT_IN_MS,
+      bodyTimeout: TIMEOUT_IN_MS,
       headers: {
         "Content-Type": "application/json",
       },
       method: "POST",
-      body: JSON.stringify({
-        correlationId: payment.getCorrelationId(),
-        amount: payment.getAmount(),
-        requestedAt: payment.getRequestedAt(),
-      }),
+      body: JSON.stringify(payment),
     });
 
     const ok = statusCode === 200;

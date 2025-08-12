@@ -2,8 +2,7 @@ import {
   IProcessorClient,
   Response,
 } from "@shared/internal/interfaces/http/IProcessorClient";
-import { ProcessorAlias, ProcessorHealthResponse } from "../dtos";
-import { Payment } from "@shared/internal/domain/Payment";
+import { PaymentDTO, ProcessorAlias, ProcessorHealthResponse } from "../dtos";
 
 export class FetchProcessorClient implements IProcessorClient {
   private readonly baseUrl: string;
@@ -42,7 +41,7 @@ export class FetchProcessorClient implements IProcessorClient {
     throw new Error("Not implemented");
   }
 
-  sendPayment(payment: Payment): Promise<Response> {
+  sendPayment(payment: PaymentDTO): Promise<Response> {
     throw new Error("Not implemented");
   }
 }

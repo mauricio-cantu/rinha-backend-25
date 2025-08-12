@@ -1,27 +1,9 @@
 x-api: &payment-api-template
   build: ./payment-api
-  image: mauriciocantu/payment-api:latest
+  # image: mauriciocantu/payment-api:latest
   depends_on:
     redis:
       condition: service_healthy
-  networks:
-    - rinha-backend
-    - payment-processor
-
-x-worker: &payment-worker-template
-  build: ./payment-worker
-  image: mauriciocantu/payment-worker:latest
-  depends_on:
-    redis:
-      condition: service_healthy
-  environment:
-    - WORKER_CONCURRENCY=${WORKER_CONCURRENCY}
-    - PAYMENTS_QUEUE=${PAYMENTS_QUEUE}
-    - REDIS_URL=${REDIS_URL}
-    - PROCESS_PAYMENT_JOB_NAME=${PROCESS_PAYMENT_JOB_NAME}
-    - PAYMENT_PROCESSOR_URL_DEFAULT=${PAYMENT_PROCESSOR_URL_DEFAULT}
-    - PAYMENT_PROCESSOR_URL_FALLBACK=${PAYMENT_PROCESSOR_URL_FALLBACK}
-    - HTTP_CONNECTIONS_NUMBER=${HTTP_CONNECTIONS_NUMBER}
   networks:
     - rinha-backend
     - payment-processor
@@ -56,11 +38,13 @@ services:
       - PROCESS_PAYMENT_JOB_NAME=${PROCESS_PAYMENT_JOB_NAME}
       - PAYMENT_PROCESSOR_URL_DEFAULT=${PAYMENT_PROCESSOR_URL_DEFAULT}
       - PAYMENT_PROCESSOR_URL_FALLBACK=${PAYMENT_PROCESSOR_URL_FALLBACK}
+      - HTTP_CONNECTIONS_NUMBER=${HTTP_CONNECTIONS_NUMBER}
+      - WORKER_CONCURRENCY=${WORKER_CONCURRENCY_API_1}
     deploy:
       resources:
         limits:
-          cpus: "0.3"
-          memory: "50MB"
+          cpus: "0.5"
+          memory: "125MB"
 
   payment-api-02:
     <<: *payment-api-template
@@ -72,33 +56,14 @@ services:
       - PROCESS_PAYMENT_JOB_NAME=${PROCESS_PAYMENT_JOB_NAME}
       - PAYMENT_PROCESSOR_URL_DEFAULT=${PAYMENT_PROCESSOR_URL_DEFAULT}
       - PAYMENT_PROCESSOR_URL_FALLBACK=${PAYMENT_PROCESSOR_URL_FALLBACK}
+      - HTTP_CONNECTIONS_NUMBER=${HTTP_CONNECTIONS_NUMBER}
+      - WORKER_CONCURRENCY=${WORKER_CONCURRENCY_API_2}
       - RUN_HEALTHCHECK=true
-      - HTTP_CONNECTIONS_NUMBER=1
     deploy:
       resources:
         limits:
-          cpus: "0.3"
-          memory: "90MB"
-
-  payment-worker-01:
-    <<: *payment-worker-template
-    hostname: payment-worker-01
-    container_name: payment-worker-01
-    deploy:
-      resources:
-        limits:
-          cpus: "0.3"
-          memory: "65MB"
-
-  payment-worker-02:
-    <<: *payment-worker-template
-    hostname: payment-worker-02
-    container_name: payment-worker-02
-    deploy:
-      resources:
-        limits:
-          cpus: "0.2"
-          memory: "65MB"
+          cpus: "0.6"
+          memory: "165MB"
 
   redis:
     image: redis:8.2-alpine
@@ -115,7 +80,7 @@ services:
       resources:
         limits:
           cpus: "0.2"
-          memory: "70MB"
+          memory: "50MB"
     networks:
       - rinha-backend
 

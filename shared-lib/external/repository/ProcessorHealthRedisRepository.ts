@@ -1,13 +1,13 @@
 import { IProcessorHealthRepository } from "@shared/internal/interfaces/repositories/IProcessorHealthRepository";
-import { RedisClientType } from "redis";
+import { Redis } from "ioredis";
 import { ProcessorAlias, ProcessorHealthResponse } from "../dtos";
 
 export class ProcessorHealthRedisRepository
   implements IProcessorHealthRepository
 {
-  private TTL_SECONDS = 6;
+  private TTL_SECONDS = 10;
 
-  constructor(private readonly redisClient: RedisClientType) {}
+  constructor(private readonly redisClient: Redis) {}
 
   private getKey(alias: ProcessorAlias): string {
     return `health:${alias}`;
@@ -17,9 +17,12 @@ export class ProcessorHealthRedisRepository
     alias: ProcessorAlias,
     data: ProcessorHealthResponse
   ) {
-    await this.redisClient.set(this.getKey(alias), JSON.stringify(data), {
-      expiration: { type: "EX", value: this.TTL_SECONDS },
-    });
+    await this.redisClient.set(
+      this.getKey(alias),
+      JSON.stringify(data),
+      "EX",
+      this.TTL_SECONDS
+    );
   }
 
   async getDefaultStatus(): Promise<ProcessorHealthResponse | null> {

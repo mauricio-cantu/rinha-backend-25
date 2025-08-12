@@ -1,5 +1,4 @@
 import { PaymentDTO, ProcessedPayment } from "@shared/external/dtos";
-import { Payment } from "@shared/internal/domain/Payment";
 import { IProcessorClientFactory } from "@shared/internal/interfaces/factories/IProcessorClientFactory";
 import { IPaymentRepository } from "@shared/internal/interfaces/repositories/IPaymentRepository";
 import { IProcessorSelectionStrategy } from "@shared/internal/interfaces/strategies/IProcessorSelectionStrategy";
@@ -20,13 +19,15 @@ export class ProcessPaymentUseCase {
       throw new Error("No processor available");
     }
     const processorClient = this.processorClientFactory.create(processor);
-    const payment = Payment.fromDto(paymentData);
-    const sendPaymentResponse = await processorClient.sendPayment(payment);
+    const currentDate = new Date().toISOString();
+    const sendPaymentResponse = await processorClient.sendPayment({
+      ...paymentData,
+      requestedAt: currentDate,
+    });
     if (sendPaymentResponse.success) {
       const processedPayment: ProcessedPayment = {
-        amount: payment.getAmount(),
-        correlationId: payment.getCorrelationId(),
-        requestedAt: payment.getRequestedAt(),
+        ...paymentData,
+        requestedAt: currentDate,
         processor,
       };
       await this.paymentRepository.save(processedPayment);

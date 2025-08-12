@@ -1,6 +1,7 @@
 export interface PaymentDTO {
   amount: number;
   correlationId: string;
+  requestedAt: string | null;
 }
 
 export interface ProcessedPayment {
