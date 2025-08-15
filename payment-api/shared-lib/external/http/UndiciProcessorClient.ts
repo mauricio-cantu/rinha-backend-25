@@ -2,14 +2,15 @@ import {
   IProcessorClient,
   Response,
 } from "@shared/internal/interfaces/http/IProcessorClient";
-import { Dispatcher, Pool } from "undici";
+import { Pool } from "undici";
 import { PaymentDTO, ProcessorAlias, ProcessorHealthResponse } from "../dtos";
 
 export class UndiciProcessorClient implements IProcessorClient {
   private readonly baseUrl: string;
-  private readonly pool: Dispatcher;
+  private readonly pool: Pool;
   private static instances: Map<ProcessorAlias, UndiciProcessorClient> =
     new Map();
+  private readonly TIMEOUT_IN_MS = 7000;
 
   private constructor(private alias: ProcessorAlias) {
     this.baseUrl = this.resolveBaseUrl(this.alias);
@@ -39,18 +40,25 @@ export class UndiciProcessorClient implements IProcessorClient {
   }
 
   async sendPayment(payment: PaymentDTO): Promise<Response> {
-    const TIMEOUT_IN_MS = 5000;
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(
+      () => abortController.abort(),
+      this.TIMEOUT_IN_MS
+    );
     const { statusCode, body: responseBody } = await this.pool.request({
       path: `${this.baseUrl}/payments`,
-      bodyTimeout: TIMEOUT_IN_MS,
+      bodyTimeout: this.TIMEOUT_IN_MS,
       headers: {
         "Content-Type": "application/json",
       },
+      signal: abortController.signal,
       method: "POST",
       body: JSON.stringify(payment),
     });
 
     const ok = statusCode === 200;
+
+    clearTimeout(timeoutId);
 
     if (!ok) {
       return {
@@ -66,15 +74,24 @@ export class UndiciProcessorClient implements IProcessorClient {
   }
 
   async checkHealth(): Promise<Response<ProcessorHealthResponse>> {
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(
+      () => abortController.abort(),
+      this.TIMEOUT_IN_MS
+    );
     const { statusCode, body: responseBody } = await this.pool.request({
       path: `${this.baseUrl}/payments/service-health`,
+      bodyTimeout: this.TIMEOUT_IN_MS,
       method: "GET",
+      signal: abortController.signal,
       headers: {
         "Content-Type": "application/json",
       },
     });
 
     const ok = statusCode === 200;
+
+    clearTimeout(timeoutId);
 
     if (!ok) {
       return {
@@ -90,6 +107,13 @@ export class UndiciProcessorClient implements IProcessorClient {
   }
 
   async purgePayments(): Promise<void> {
-    throw new Error("To be implemented");
+    await this.pool.request({
+      path: `${this.baseUrl}/admin/purge-payments`,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Rinha-Token": "123",
+      },
+    });
   }
 }

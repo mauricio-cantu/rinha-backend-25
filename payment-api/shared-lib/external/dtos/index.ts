@@ -16,11 +16,6 @@ export interface ProcessorHealthResponse {
   minResponseTime: number;
 }
 
-export interface DateRange {
-  from: string;
-  to: string;
-}
-
 export interface SummaryItem {
   totalRequests: number;
   totalAmount: number;

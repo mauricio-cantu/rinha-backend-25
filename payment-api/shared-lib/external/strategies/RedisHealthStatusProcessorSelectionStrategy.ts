@@ -5,13 +5,13 @@ import { ProcessorAlias } from "../dtos";
 export class RedisHealthStatusProcessorSelectionStrategy
   implements IProcessorSelectionStrategy
 {
-  private readonly FALLBACK_LATENCY_PENALTY_PERCENTAGE = 0.6;
+  private readonly FALLBACK_LATENCY_PENALTY_PERCENTAGE = 0.4;
 
   constructor(
     private readonly processorHealthRepository: IProcessorHealthRepository
   ) {}
 
-  async run(): Promise<ProcessorAlias | null> {
+  async run(): Promise<ProcessorAlias> {
     const [defaultStatus, fallbackStatus] = await Promise.all([
       this.processorHealthRepository.getDefaultStatus(),
       this.processorHealthRepository.getFallbackStatus(),
@@ -33,6 +33,6 @@ export class RedisHealthStatusProcessorSelectionStrategy
       return preferFallback ? "fallback" : "default";
     }
 
-    return null;
+    return "default";
   }
 }
