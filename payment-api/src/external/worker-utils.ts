@@ -1,5 +1,5 @@
+import { ProcessedPayment } from "@shared/external/dtos";
 import { ParsedUrlQuery } from "querystring";
-import { GetPaymentsSummaryUseCaseResponse } from "src/internal/use-cases/GetPaymentsSummaryUseCase";
 import { Worker } from "worker_threads";
 
 export type ServerWorkerMessage =
@@ -13,7 +13,7 @@ export type ServerWorkerMessage =
     }
   | {
       type: "payments-summary-response";
-      payload: GetPaymentsSummaryUseCaseResponse;
+      payload: ProcessedPayment[];
     };
 
 export const sendToWorker = (worker: Worker, message: ServerWorkerMessage) => {

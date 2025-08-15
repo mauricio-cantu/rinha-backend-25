@@ -1,23 +1,28 @@
-import { PaymentDTO, ProcessedPayment } from "@shared/external/dtos";
+import {
+  PaymentDTO,
+  ProcessedPayment,
+  ProcessorAlias,
+} from "@shared/external/dtos";
 import { IProcessorClientFactory } from "@shared/internal/interfaces/factories/IProcessorClientFactory";
-import { IPaymentRepository } from "@shared/internal/interfaces/repositories/IPaymentRepository";
-import { IProcessorSelectionStrategy } from "@shared/internal/interfaces/strategies/IProcessorSelectionStrategy";
+
+type ProcessPaymentUseCaseResponse =
+  | {
+      success: true;
+      processedPayment: ProcessedPayment;
+    }
+  | {
+      success: false;
+    };
 
 export class ProcessPaymentUseCase {
   constructor(
-    private readonly processorSelectionStrategy: IProcessorSelectionStrategy,
-    private readonly processorClientFactory: IProcessorClientFactory,
-    private readonly paymentRepository: IPaymentRepository
+    private readonly processorClientFactory: IProcessorClientFactory
   ) {}
 
-  async execute(paymentData: PaymentDTO) {
-    console.log("[ProcessPaymentUseCase] Working...", paymentData);
-
-    const processor = await this.processorSelectionStrategy.run();
-    if (!processor) {
-      // requeue
-      throw new Error("No processor available");
-    }
+  async execute(
+    paymentData: PaymentDTO,
+    processor: ProcessorAlias
+  ): Promise<ProcessPaymentUseCaseResponse> {
     const processorClient = this.processorClientFactory.create(processor);
     const currentDate = new Date().toISOString();
     const sendPaymentResponse = await processorClient.sendPayment({
@@ -30,14 +35,15 @@ export class ProcessPaymentUseCase {
         requestedAt: currentDate,
         processor,
       };
-      await this.paymentRepository.save(processedPayment);
-      console.log(
-        "[ProcessPaymentUseCase] Finished processing payment",
-        processedPayment
-      );
+
+      return {
+        success: true,
+        processedPayment,
+      };
     } else {
-      // requeue
-      throw new Error(`Failed sending payment to ${processor} processor.`);
+      return {
+        success: false,
+      };
     }
   }
 }

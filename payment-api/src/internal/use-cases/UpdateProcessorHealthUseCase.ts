@@ -8,8 +8,6 @@ export class UpdateProcessorHealthUseCase {
   ) {}
 
   async execute() {
-    console.log("[UpdateProcessorHealthUseCase] Working...");
-
     const defaultClient = this.processorClientFactory.create("default");
     const fallbackClient = this.processorClientFactory.create("fallback");
 
