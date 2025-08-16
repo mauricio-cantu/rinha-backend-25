@@ -1,14 +1,15 @@
-import { PaymentDTO, ProcessedPayment } from "@shared/external/dtos";
+import { ProcessedPayment } from "@shared/external/dtos";
 import { UndiciProcessorClientFactory } from "@shared/external/factories/UndiciProcessorClientFactory";
 import { ProcessorHealthRedisRepository } from "@shared/external/repository/ProcessorHealthRedisRepository";
-import { RedisHealthStatusProcessorSelectionStrategy } from "@shared/external/strategies/RedisHealthStatusProcessorSelectionStrategy";
+import { DefaultOnlyProcessorSelectionStrategy } from "@shared/external/strategies/DefaultOnlyProcessorSelectionStrategy";
 import Redis from "ioredis";
 import { parentPort } from "node:worker_threads";
 import { ProcessPaymentUseCase } from "src/internal/use-cases/ProcessPaymentUseCase";
 import { UpdateProcessorHealthUseCase } from "src/internal/use-cases/UpdateProcessorHealthUseCase";
 import { runWithInterval } from "src/utils";
-import { ServerWorkerMessage } from "./worker-utils";
 import { BatchProcessingResult } from "./types";
+import { ServerWorkerMessage } from "./worker-utils";
+import { RedisHealthStatusProcessorSelectionStrategy } from "@shared/external/strategies/RedisHealthStatusProcessorSelectionStrategy";
 
 const BATCH_CONCURRENCY = Number(process.env.BATCH_CONCURRENCY) || 50;
 const BATCH_INTERVAL = Number(process.env.BATCH_INTERVAL) || 100;
@@ -20,8 +21,7 @@ const redis = new Redis({
 
 const processorClientFactory = new UndiciProcessorClientFactory();
 const processorHealthRepository = new ProcessorHealthRedisRepository(redis);
-const processorSelectionStrategy =
-  new RedisHealthStatusProcessorSelectionStrategy(processorHealthRepository);
+const processorSelectionStrategy = new DefaultOnlyProcessorSelectionStrategy();
 const processPaymentUseCase = new ProcessPaymentUseCase(processorClientFactory);
 
 const pendingPayments: string[] = [];

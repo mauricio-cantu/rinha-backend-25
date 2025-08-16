@@ -45,32 +45,39 @@ export class UndiciProcessorClient implements IProcessorClient {
       () => abortController.abort(),
       this.TIMEOUT_IN_MS
     );
-    const { statusCode, body: responseBody } = await this.pool.request({
-      path: `${this.baseUrl}/payments`,
-      bodyTimeout: this.TIMEOUT_IN_MS,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      signal: abortController.signal,
-      method: "POST",
-      body: JSON.stringify(payment),
-    });
+    try {
+      const { statusCode, body: responseBody } = await this.pool.request({
+        path: `${this.baseUrl}/payments`,
+        bodyTimeout: this.TIMEOUT_IN_MS,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        signal: abortController.signal,
+        method: "POST",
+        body: JSON.stringify(payment),
+      });
 
-    const ok = statusCode === 200;
+      const ok = statusCode === 200;
 
-    clearTimeout(timeoutId);
+      clearTimeout(timeoutId);
 
-    if (!ok) {
+      if (!ok) {
+        return {
+          success: false,
+          error: null,
+        };
+      }
+
+      return {
+        success: true,
+        data: await responseBody.json(),
+      };
+    } catch {
       return {
         success: false,
         error: null,
       };
     }
-
-    return {
-      success: true,
-      data: await responseBody.json(),
-    };
   }
 
   async checkHealth(): Promise<Response<ProcessorHealthResponse>> {
@@ -79,31 +86,38 @@ export class UndiciProcessorClient implements IProcessorClient {
       () => abortController.abort(),
       this.TIMEOUT_IN_MS
     );
-    const { statusCode, body: responseBody } = await this.pool.request({
-      path: `${this.baseUrl}/payments/service-health`,
-      bodyTimeout: this.TIMEOUT_IN_MS,
-      method: "GET",
-      signal: abortController.signal,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    try {
+      const { statusCode, body: responseBody } = await this.pool.request({
+        path: `${this.baseUrl}/payments/service-health`,
+        bodyTimeout: this.TIMEOUT_IN_MS,
+        method: "GET",
+        signal: abortController.signal,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-    const ok = statusCode === 200;
+      const ok = statusCode === 200;
 
-    clearTimeout(timeoutId);
+      clearTimeout(timeoutId);
 
-    if (!ok) {
+      if (!ok) {
+        return {
+          success: false,
+          error: null,
+        };
+      }
+
+      return {
+        success: true,
+        data: (await responseBody.json()) as ProcessorHealthResponse,
+      };
+    } catch {
       return {
         success: false,
         error: null,
       };
     }
-
-    return {
-      success: true,
-      data: (await responseBody.json()) as ProcessorHealthResponse,
-    };
   }
 
   async purgePayments(): Promise<void> {
