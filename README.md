@@ -32,7 +32,7 @@ Muito round-trip com o Redis, o que acabou pesando um pouco e prejudicando o P99
 
 ### Segunda submissão
 
-Depois da primeira submissão a rinha pegou preço e quis de alguma forma ganhar um bônus de P99. Precisava reduzir latência e, para isso, diminuí o uso do Redis e fiz uma fila in-memory com scheduled jobs para processar os pagamentos, simples, sem BullMQ. O armazenamento dos pagamentos processados passou a ser in-memory também, em cada instância. O Redis permaneceu apenas para cachear o health status dos processadores. Cortando a maior parte da comunicação e número de conexões com o Redis, a latência reduziu muito e aí consegui um lucro líquido de <strong>R$ 355.763,34 com 3.52ms</strong> 🔥. No momento dessa escrita, <strong>ficou no Top 3</strong> das submissões com Node.js!
+Depois da primeira submissão a rinha pegou preço e quis de alguma forma ganhar um bônus de P99. Precisava reduzir latência e, para isso, diminuí o uso do Redis e fiz uma fila in-memory com scheduled jobs para processar os pagamentos, simples, sem BullMQ. O armazenamento dos pagamentos processados passou a ser in-memory também, em cada instância. O Redis permaneceu apenas para cachear o health status dos processadores. Cortando a maior parte da comunicação e número de conexões com o Redis, a latência reduziu muito e aí consegui um lucro líquido de <strong>R$ 355.763,34 com P99 de 3.52ms</strong> 🔥. Sem multas (o proxy registrou todos os pagamentos, batendo 100% nas auditorias) e sem lag (o proxy processou todos os pagamentos recebidos). No momento dessa escrita, <strong>ficou no Top 3</strong> das submissões com Node.js!
 
 - Endpoint POST "/payments":
   - Servidor HTTP recebe o pagamento e apenas repassa para o Worker thread

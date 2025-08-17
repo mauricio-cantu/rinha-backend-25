@@ -10,7 +10,7 @@ export class UndiciProcessorClient implements IProcessorClient {
   private readonly pool: Pool;
   private static instances: Map<ProcessorAlias, UndiciProcessorClient> =
     new Map();
-  private readonly TIMEOUT_IN_MS = 7000;
+  private readonly TIMEOUT_IN_MS = 7_000;
 
   private constructor(private alias: ProcessorAlias) {
     this.baseUrl = this.resolveBaseUrl(this.alias);
@@ -48,7 +48,6 @@ export class UndiciProcessorClient implements IProcessorClient {
     try {
       const { statusCode, body: responseBody } = await this.pool.request({
         path: `${this.baseUrl}/payments`,
-        bodyTimeout: this.TIMEOUT_IN_MS,
         headers: {
           "Content-Type": "application/json",
         },
@@ -89,7 +88,6 @@ export class UndiciProcessorClient implements IProcessorClient {
     try {
       const { statusCode, body: responseBody } = await this.pool.request({
         path: `${this.baseUrl}/payments/service-health`,
-        bodyTimeout: this.TIMEOUT_IN_MS,
         method: "GET",
         signal: abortController.signal,
         headers: {

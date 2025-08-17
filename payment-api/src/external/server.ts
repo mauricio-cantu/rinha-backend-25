@@ -34,6 +34,11 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (method === "GET" && parsedUrl.pathname === "/payments-summary") {
+      const { from, to } = parsedUrl.query;
+
+      // validação superficial
+      if (!from || !to) return;
+
       const ownPaymentsPromise = new Promise<ProcessedPayment[]>(
         (resolve, reject) => {
           serverWorker.once("message", (message: ServerWorkerMessage) => {
@@ -54,8 +59,6 @@ const server = http.createServer(async (req, res) => {
       const foreignPaymentPromise = request(
         `${process.env.FOREIGN_API_URL}/private/processed-payments`
       );
-
-      const { from, to } = parsedUrl.query;
 
       await Promise.all([ownPaymentsPromise, foreignPaymentPromise])
         .then(async ([ownPayments, foreignPaymentsResponse]) => {

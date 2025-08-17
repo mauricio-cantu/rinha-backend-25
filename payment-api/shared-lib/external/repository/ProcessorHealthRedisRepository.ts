@@ -19,20 +19,30 @@ export class ProcessorHealthRedisRepository
   ) {
     await this.redisClient.set(
       this.getKey(alias),
-      JSON.stringify(data),
+      `${data.failing} ${data.minResponseTime}`,
       "EX",
       this.TTL_SECONDS
     );
   }
 
+  private unpack(value: string): ProcessorHealthResponse {
+    const spaceIndex = value.indexOf(" ");
+    const failing = value.substring(0, spaceIndex);
+    const minResponseTime = value.substring(spaceIndex + 1);
+    return {
+      failing: Boolean(failing),
+      minResponseTime: Number(minResponseTime),
+    };
+  }
+
   async getDefaultStatus(): Promise<ProcessorHealthResponse | null> {
     const value = await this.redisClient.get(this.getKey("default"));
-    return value ? (JSON.parse(value) as ProcessorHealthResponse) : null;
+    return value ? this.unpack(value) : null;
   }
 
   async getFallbackStatus(): Promise<ProcessorHealthResponse | null> {
     const value = await this.redisClient.get(this.getKey("fallback"));
-    return value ? (JSON.parse(value) as ProcessorHealthResponse) : null;
+    return value ? this.unpack(value) : null;
   }
 
   async saveDefaultStatus(
